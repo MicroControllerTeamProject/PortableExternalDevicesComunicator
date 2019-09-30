@@ -55,7 +55,7 @@ int temp;
 
 
 
-char version[15] = "-G01 1.00-alfa";
+char version[15] = "-E01 1.00-alfa";
 
 ActivityManager* _delayForTemperature = new ActivityManager(60);
 
