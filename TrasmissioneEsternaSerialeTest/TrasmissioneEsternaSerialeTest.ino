@@ -4,11 +4,15 @@ SoftwareSerial* softwareSerial = new SoftwareSerial(12, 5);
 
 void setup(void) {
 	Serial.begin(9600);
+	pinMode(A4, OUTPUT);
 	softwareSerial->begin(19200);
 }
 
 //Il simbolo 'N' è considerato simbolo di errore.
 void loop(void) {
+
+	digitalWrite(A4, HIGH);
+
 	if (softwareSerial->available() > 0)
 	{
 		//Serial.println(softwareSerial->readString());
