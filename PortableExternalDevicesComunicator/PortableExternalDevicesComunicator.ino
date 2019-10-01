@@ -53,9 +53,7 @@ int temp;
 #include "MySim900.h"
 #include "ActivityManager.h"
 
-
-
-char version[15] = "-E01 1.00-alfa";
+char version[15] = "-X01 1.00-alfa";
 
 ActivityManager* _delayForTemperature = new ActivityManager(60);
 
@@ -64,8 +62,6 @@ ActivityManager* _delayForVoltage = new ActivityManager(60);
 ActivityManager* _delayForFindPhone = new ActivityManager(30);
 
 ActivityManager* _delayForSignalStrength = new ActivityManager(30);
-
-//ActivityManager* _delayForGetDataFromExternalDevice = new ActivityManager(30);
 
 MyBlueTooth* btSerial;
 
@@ -105,7 +101,7 @@ const byte _addressOffSetTemperature = 92;
 
 const byte _addressDelayFindMe = 94;
 
-//const byte _addressExternalInterruptIsOn = 96;
+const byte _addressExternalInterruptIsOn = 96;
 
 const byte _addressStartDeviceAddress2 = 98;
 
@@ -138,7 +134,7 @@ String _whatIsHappened = "";
 
 uint8_t _isBTSleepON = 1;
 
-//uint8_t _isExternalInterruptOn = 0;
+uint8_t _isExternalInterruptOn = 0;
 
 uint8_t _phoneNumbers = 0;
 
@@ -177,6 +173,8 @@ unsigned long _millsStart = 0;
 //String _apn = "";
 
 bool _isDeviceDetected = false;
+
+bool _isOnInterrupt = false;
 
 const int BUFSIZEPHONENUMBER = 11;
 //char _bufPhoneNumber[BUFSIZEPHONENUMBER];
@@ -220,8 +218,8 @@ char _bufOffSetTemperature[BUFSIZEOFFSETTEMPERATURE];
 const int BUFSIZEDELAYFINDME = 2;
 char _bufDelayFindMe[BUFSIZEDELAYFINDME];
 
-//const int BUFSIZEEXTERNALINTERRUPTISON = 2;
-//char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
+const int BUFSIZEEXTERNALINTERRUPTISON = 2;
+char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 
 //---------------------------------------------       PINS USED   ----------------------------------------------------------
 
@@ -373,8 +371,8 @@ void initilizeEEPromData()
 	eepromRW->eeprom_read_string(_addressDelayFindMe, _bufDelayFindMe, BUFSIZEDELAYFINDME);
 	_delayFindMe = atoi(_bufDelayFindMe);
 
-	//eepromRW->eeprom_read_string(_addressExternalInterruptIsOn, _bufExternalInterruptIsON, BUFSIZEEXTERNALINTERRUPTISON);
-	//_isExternalInterruptOn = atoi(&_bufExternalInterruptIsON[0]);
+	eepromRW->eeprom_read_string(_addressExternalInterruptIsOn, _bufExternalInterruptIsON, BUFSIZEEXTERNALINTERRUPTISON);
+	_isExternalInterruptOn = atoi(&_bufExternalInterruptIsON[0]);
 
 	delete(eepromRW);
 
@@ -390,7 +388,7 @@ void inizializePins()
 void inizializeInterrupts()
 {
 	///*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
-	//attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 }
 
 void callSim900()
@@ -419,11 +417,12 @@ void callSim900()
 
 }
 
-//void motionTiltExternalInterrupt() {
-//	if (_isExternalInterruptOn /*&& !_isPIRSensorActivated*/) {
-//		_isOnMotionDetect = true;
-//	}
-//}
+void motionTiltExternalInterrupt() {
+	if (_isExternalInterruptOn /*&& !_isPIRSensorActivated*/) {
+		//_isOnMotionDetect = true;
+		_isOnInterrupt = true;
+	}
+}
 
 void getSignalStrength()
 {
@@ -677,70 +676,35 @@ void loop()
 	}
 	//readMemoryAtRunTime();
 }
-//
-//void isMotionDetect()
-//{
-//	if (_isDisableCall || _findOutPhonesMode == 2 || _isPIRSensorActivated) {
-//		_isOnMotionDetect = false;
-//		return;
-//	}
-//
-//	if ((_isOnMotionDetect && _isAlarmOn) || (_isAlarmOn && _isExternalInterruptOn && !digitalRead(3))) //&& !isOnConfiguration)									 /*if(true)*/
-//	{
-//		//Serial.println("lampeggio");
-//		blinkLed();
-//
-//		detachInterrupt(0);
-//		detachInterrupt(1);
-//
-//		/*	if ((!_isFirstTilt || (_precision == 9)) && _precision != 0)
-//			{*/
-//		_whatIsHappened = F("M");
-//
-//		if (_findOutPhonesMode == 1)
-//		{
-//			if (!_isDeviceDetected)
-//			{
-//				callSim900();
-//				_isMasterMode = false;
-//			}
-//		}
-//		else
-//		{
-//			callSim900();
-//			_isMasterMode = false;
-//		}
-//		//Accendo bluetooth con ritardo annesso solo se è scattato allarme,troppo critico
-//		//per perdere tempo se non scattato allarme.
-//		if (btSerial->isBlueToothOff() && _findOutPhonesMode == 0)
-//		{
-//			delay(30000);
-//			turnOnBlueToothAndSetTurnOffTimer(false);
-//		}
-//		//}
-//
-//		readIncomingSMS();
-//
-//		isFindOutPhonesONAndSetBluetoothInMasterMode();
-//
-//
-//		/*}
-//		else
-//		{
-//			_isFirstTilt = false;
-//			_millsStart = millis();
-//		}*/
-//		EIFR |= 1 << INTF1; //clear external interrupt 1
-//		EIFR |= 1 << INTF0; //clear external interrupt 0
-//		//EIFR = 0x01;
-//		sei();
-//
-//		/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
-//		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
-//
-//		_isOnMotionDetect = false;
-//	}
-//}
+
+void isOnInterrupt()
+{
+	if (_isDisableCall) {
+		_isOnInterrupt = false;
+		return;
+	}
+
+	if (_isAlarmOn && _isExternalInterruptOn && _isOnInterrupt)
+	{
+		//Serial.println("lampeggio");
+		blinkLed();
+
+		detachInterrupt(0);
+		detachInterrupt(1);
+
+		//Do something
+
+		EIFR |= 1 << INTF1; //clear external interrupt 1
+		//EIFR |= 1 << INTF0; //clear external interrupt 0
+		//EIFR = 0x01;
+		sei();
+
+		/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
+		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+
+		_isOnInterrupt = false;
+	}
+}
 
 void turnOnBlueToothAndSetTurnOffTimer(bool isFromSMS)
 {
@@ -932,7 +896,7 @@ void loadConfigurationMenu()
 	//btSerial->println(BlueToothCommandsUtil::CommandConstructor("FindMode:" + String(_findOutPhonesMode), BlueToothCommandsUtil::Data, F("012")));
 
 	////String(F("Ext.Int:")).toCharArray(commandString, 15);
-	//btSerial->println(BlueToothCommandsUtil::CommandConstructor("Ext.Int:" + String(_isExternalInterruptOn), BlueToothCommandsUtil::Data, F("013")));
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Ext.Int:" + String(_isExternalInterruptOn), BlueToothCommandsUtil::Data, F("013")));
 
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));
 	//delete(commandString);
@@ -1271,7 +1235,7 @@ void blueToothConfigurationSystem()
 		//	loadConfigurationMenu();
 		//}
 
-		/*if (_bluetoothData.indexOf(F("D013")) > -1)
+		if (_bluetoothData.indexOf(F("D013")) > -1)
 		{
 			String splitString = splitStringIndex(_bluetoothData, ';', 1);
 			if (isValidNumber(splitString))
@@ -1281,7 +1245,7 @@ void blueToothConfigurationSystem()
 				_isExternalInterruptOn = atoi(&_bufExternalInterruptIsON[0]);
 			}
 			loadConfigurationMenu();
-		}*/
+		}
 
 #pragma endregion
 
