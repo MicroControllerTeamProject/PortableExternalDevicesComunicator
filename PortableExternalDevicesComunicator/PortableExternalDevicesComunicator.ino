@@ -52,6 +52,7 @@ int temp;
 #include <StringFunctions.h>
 #include "MySim900.h"
 #include "ActivityManager.h"
+#include <TimeLib.h>
 
 char version[15] = "-X01 1.00-alfa";
 
@@ -601,13 +602,17 @@ void getExternalDevices()
 	delete mySim900;
 	softwareSerial.begin(19200);
 
-	softwareSerial.print("ok");
+	softwareSerial.print("H"); 
+	if (hour() < 10) { softwareSerial.print('0'); }
+	softwareSerial.print(hour()); 
+	if (minute() < 10) { softwareSerial.print('0'); }
+	softwareSerial.print(minute());
 
 	//////Pulisco buffer se ci fosse roba
 	/*softwareSerial.readStringUntil('*');
 	softwareSerial.flush();*/
 	delay(2000);
-
+	
 	if (softwareSerial.available() > 0)
 	{
 		char *buffExtenalDevices = new char[100];
@@ -625,7 +630,12 @@ void getExternalDevices()
 
 void loop()
 {
-	if (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
+	/*if (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
+	{
+		getExternalDevices();
+	}*/
+
+	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
 	{
 		getExternalDevices();
 	}
@@ -827,6 +837,9 @@ void loadMainMenu()
 
 	//String(F("WhatzUp:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("WhatzUp:" + _whatIsHappened, BlueToothCommandsUtil::Info));
+
+	//String(F("Time:")).toCharArray(commandString, 15);
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + String(hour()) + ":" + String(minute()), BlueToothCommandsUtil::Info));
 
 	//String(F("Signal:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Signal:" + _signalStrength, BlueToothCommandsUtil::Info));
@@ -1507,6 +1520,15 @@ void readIncomingSMS()
 void listOfSmsCommands(String command)
 {
 	command.trim();
+	//Imposta ora di sistema
+	if (command.startsWith("H"))
+	{
+		String hour = command.substring(1, 3);
+		String minute = (command.substring(3, 5));
+		setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+		callSim900();
+	}
+
 	//Attiva chiamate
 	//if (command == F("Ac"))
 	//{
