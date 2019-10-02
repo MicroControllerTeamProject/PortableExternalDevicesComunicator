@@ -1,4 +1,6 @@
 #include "SoftwareSerial.h"
+#include <TimeLib.h>
+
 
 SoftwareSerial* softwareSerial = new SoftwareSerial(12, 5);
 
@@ -12,6 +14,7 @@ void setup(void) {
 void loop(void) {
 
 	digitalWrite(A4, LOW);
+
 	if (softwareSerial->available() > 0)
 	{
 		String recevedMessage = softwareSerial->readString();
@@ -19,7 +22,11 @@ void loop(void) {
 		Serial.println(recevedMessage);
 		if (recevedMessage.startsWith("H"))
 		{
-			softwareSerial->print("t01Y08.50");
+			String hour = recevedMessage.substring(1, 3);
+			String minute = (recevedMessage.substring(3, 5));
+			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+
+			softwareSerial->print("t01N08.50");
 			softwareSerial->print("t02Y07.50");
 			softwareSerial->print("t03Y47.50");
 			softwareSerial->print("t04Y48.50");

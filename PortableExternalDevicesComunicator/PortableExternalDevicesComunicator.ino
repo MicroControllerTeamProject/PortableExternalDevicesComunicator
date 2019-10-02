@@ -115,7 +115,7 @@ bool _isBlueLedDisable = true;
 
 bool _isDisableCall = false;
 
-bool _isOnExternalDeviceAlarm = false;
+//bool _isOnExternalDeviceAlarm = false;
 
 char _prefix[4] = "+39";
 
@@ -369,8 +369,8 @@ void initilizeEEPromData()
 	eepromRW->eeprom_read_string(_addressOffSetTemperature, _bufOffSetTemperature, BUFSIZEOFFSETTEMPERATURE);
 	_offSetTempValue = atoi(_bufOffSetTemperature);
 
-	eepromRW->eeprom_read_string(_addressDelayFindMe, _bufDelayFindMe, BUFSIZEDELAYFINDME);
-	_delayFindMe = atoi(_bufDelayFindMe);
+	/*eepromRW->eeprom_read_string(_addressDelayFindMe, _bufDelayFindMe, BUFSIZEDELAYFINDME);
+	_delayFindMe = atoi(_bufDelayFindMe);*/
 
 	eepromRW->eeprom_read_string(_addressExternalInterruptIsOn, _bufExternalInterruptIsON, BUFSIZEEXTERNALINTERRUPTISON);
 	_isExternalInterruptOn = atoi(&_bufExternalInterruptIsON[0]);
@@ -445,18 +445,18 @@ void getSignalStrength()
 //	}
 //}
 
-void turnOnBlueToothIfMotionIsDetected()
-{
-	if (_isOnExternalDeviceAlarm
-		&& !_isAlarmOn
-		&& btSerial->isBlueToothOff()
-		&& _isBTSleepON
-		)
-	{
-		_isOnExternalDeviceAlarm = false;
-		turnOnBlueToothAndSetTurnOffTimer(false);
-	}
-}
+//void turnOnBlueToothIfMotionIsDetected()
+//{
+//	if (_isOnExternalDeviceAlarm
+//		&& !_isAlarmOn
+//		&& btSerial->isBlueToothOff()
+//		&& _isBTSleepON
+//		)
+//	{
+//		_isOnExternalDeviceAlarm = false;
+//		turnOnBlueToothAndSetTurnOffTimer(false);
+//	}
+//}
 
 //bool isFindOutPhonesONAndSetBluetoothInMasterMode()
 //{
@@ -628,6 +628,8 @@ void getExternalDevices()
 	}
 }
 
+unsigned long isWaitingForSMS = 0;
+
 void loop()
 {
 	/*if (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
@@ -637,15 +639,18 @@ void loop()
 
 	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
 	{
-		getExternalDevices();
-	}
-	
-	if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
-	{
+		if ((millis() - isWaitingForSMS) > 60000)
+		{
+			getExternalDevices();	
+			isWaitingForSMS = millis();
+		}
 		readIncomingSMS();
 	}
 
-	if (_delayForSignalStrength->IsDelayTimeFinished(true))
+	
+
+	if (_delayForSignalStrength->IsDelayTimeFinished(true) && 
+		digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
 	{
 		getSignalStrength();
 	}
@@ -662,15 +667,15 @@ void loop()
 	//{
 	//	turnOffBluetoohIfTimeIsOver();
 	//}
-	if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
+	/*if (!(_isOnExternalDeviceAlarm && _isAlarmOn) && digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
 	{
 		turnOnBlueToothIfMotionIsDetected();
-	}
-	if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
+	}*/
+	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
 	{
 		internalTemperatureActivity();
 	}
-	if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
+	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
 	{
 		voltageActivity();
 	}
@@ -680,7 +685,7 @@ void loop()
 		pirSensorActivity();
 	}*/
 	//isMotionDetect();
-	if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
+	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
 	{
 		blueToothConfigurationSystem();
 	}
@@ -939,7 +944,7 @@ void blueToothConfigurationSystem()
 			//do something
 			//digitalWrite(_pin_powerLed, HIGH);
 			_isAlarmOn = true;
-			_isOnExternalDeviceAlarm = false;
+			/*_isOnExternalDeviceAlarm = false;*/
 			/*_timeAfterPowerOnForBTFinder = 0;*/
 			//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm ON"), BlueToothCommandsUtil::Title));
 		/*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm ON"), BlueToothCommandsUtil::Message));
@@ -1488,7 +1493,7 @@ void readIncomingSMS()
 	{
 		String response = mySim900->ReadIncomingChars2();
 		delay(500);
-		//Serial.print("####"); Serial.print(response); Serial.println("####");
+		Serial.print("####"); Serial.print(response); Serial.println("####");
 		response.trim();
 		//if (response.substring(0, 5) == F("+CMT:"))
 		//if (response.indexOf("+CMT:") != -1)
@@ -1530,12 +1535,11 @@ void listOfSmsCommands(String command)
 	}
 
 	//Attiva chiamate
-	//if (command == F("Ac"))
-	//{
-	//	_isDisableCall = false;
-	//	_isMasterMode = false;
-	//	callSim900();
-	//}
+	if (command == F("Ac"))
+	{
+		_isDisableCall = false;
+		callSim900();
+	}
 
 	//Disattiva chiamate
 	if (command == F("Dc"))
