@@ -1,6 +1,7 @@
 #include "SoftwareSerial.h"
 #include <TimeLib.h>
 
+bool _isTimeInitialize = false;
 
 SoftwareSerial* softwareSerial = new SoftwareSerial(12, 5);
 
@@ -10,22 +11,40 @@ void setup(void) {
 	softwareSerial->begin(19200);
 }
 
-//Il simbolo 'N' è considerato simbolo di errore.
-void loop(void) {
-
-	digitalWrite(A4, HIGH);
-
+String getSerialMessage()
+{
+	String recevedMessage = "";
 	if (softwareSerial->available() > 0)
 	{
-		String recevedMessage = softwareSerial->readString();
+		recevedMessage = softwareSerial->readString();
 		recevedMessage.trim();
-		Serial.println(recevedMessage);
-		if (recevedMessage.startsWith("H"))
-		{
-			String hour = recevedMessage.substring(1, 3);
-			String minute = (recevedMessage.substring(3, 5));
-			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+	}
+	return recevedMessage;
+}
 
+
+//Il simbolo 'N' è considerato simbolo di errore.
+void loop(void) {
+	String receivedMessage = "";
+	while (!_isTimeInitialize)
+	{
+		digitalWrite(A4, LOW);
+		receivedMessage = getSerialMessage();
+		if (receivedMessage.startsWith("H"))
+		{
+			String hour = receivedMessage.substring(1, 3);
+			String minute = (receivedMessage.substring(3, 5));
+			setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
+			Serial.print(hour); Serial.print(":"); Serial.print(minute);
+			_isTimeInitialize = true;
+		}
+	}
+
+	digitalWrite(A4, LOW);
+
+	receivedMessage = getSerialMessage();
+	if (receivedMessage.startsWith("H"))
+	{
 			softwareSerial->print("t01N08.50");
 			softwareSerial->print("t02Y07.50");
 			softwareSerial->print("t03Y47.50");
@@ -38,5 +57,4 @@ void loop(void) {
 			softwareSerial->print("t10Y48.50");
 			softwareSerial->print("t11Y47.50*");
 		}
-	}
 }

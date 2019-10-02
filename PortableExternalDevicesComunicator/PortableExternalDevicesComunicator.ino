@@ -615,6 +615,7 @@ void getExternalDevices()
 	{
 		char *buffExtenalDevices = new char[100];
 		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
+		//Serial.println(buffExtenalDevices);
 		isOnAlarm = chechDevicesValue(buffExtenalDevices);
 		delete[] buffExtenalDevices;
 	}
@@ -1474,7 +1475,7 @@ void readIncomingSMS()
 	{
 		String response = mySim900->ReadIncomingChars2();
 		delay(500);
-		Serial.print("####"); Serial.print(response); Serial.println("####");
+		//Serial.print("####"); Serial.print(response); Serial.println("####");
 		response.trim();
 		//if (response.substring(0, 5) == F("+CMT:"))
 		//if (response.indexOf("+CMT:") != -1)
