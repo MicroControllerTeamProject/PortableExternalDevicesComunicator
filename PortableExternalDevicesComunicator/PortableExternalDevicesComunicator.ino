@@ -36,7 +36,6 @@ extern int __heap_start;
 extern int __brkval;
 int temp;
 
-
 #if (defined(__AVR__))
 #include <avr/pgmspace.h>
 #else
@@ -107,7 +106,6 @@ const byte _addressExternalInterruptIsOn = 96;
 const byte _addressStartDeviceAddress2 = 98;
 
 const byte _addressStartDeviceName2 = 110;
-
 
 //uint8_t _isPIRSensorActivated = 0;
 
@@ -636,8 +634,7 @@ void loop()
 	{
 		getExternalDevices();
 	}*/
-
-	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW)
+	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW && !_isDisableCall)
 	{
 		if ((millis() - isWaitingForSMS) > 60000)
 		{
@@ -647,48 +644,19 @@ void loop()
 		readIncomingSMS();
 	}
 
-	
+	readIncomingSMS();
 
-	if (_delayForSignalStrength->IsDelayTimeFinished(true) && 
-		digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
+	if (_delayForSignalStrength->IsDelayTimeFinished(true))
 	{
 		getSignalStrength();
 	}
+	
+	internalTemperatureActivity();
 
-	//if ((!(_isOnExternalDeviceAlarm && _isAlarmOn)) || _findOutPhonesMode == 2)
-	//{
-	//	if (_delayForFindPhone->IsDelayTimeFinished(true))
-	//	{
-	//		//Serial.println("Sto cercando");
-	//		isFindOutPhonesONAndSetBluetoothInMasterMode();
-	//	}
-	//}
-	//if (!(_isOnExternalDeviceAlarm && _isAlarmOn))
-	//{
-	//	turnOffBluetoohIfTimeIsOver();
-	//}
-	/*if (!(_isOnExternalDeviceAlarm && _isAlarmOn) && digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
-	{
-		turnOnBlueToothIfMotionIsDetected();
-	}*/
-	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
-	{
-		internalTemperatureActivity();
-	}
-	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
-	{
-		voltageActivity();
-	}
+	voltageActivity();
 
-	/*if (!(_isOnMotionDetect && _isAlarmOn))
-	{
-		pirSensorActivity();
-	}*/
-	//isMotionDetect();
-	if (digitalRead(softwareSerialExternalDevicesPinAlarm) != LOW)
-	{
-		blueToothConfigurationSystem();
-	}
+	blueToothConfigurationSystem();
+
 	//readMemoryAtRunTime();
 }
 
@@ -840,11 +808,24 @@ void loadMainMenu()
 	//String(F("Batt.level:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Batt.level:" + battery, BlueToothCommandsUtil::Info));
 
-	//String(F("WhatzUp:")).toCharArray(commandString, 15);
+	
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("WhatzUp:" + _whatIsHappened, BlueToothCommandsUtil::Info));
 
-	//String(F("Time:")).toCharArray(commandString, 15);
-	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + String(hour()) + ":" + String(minute()), BlueToothCommandsUtil::Info));
+	String hours = "";
+
+	String minutes = "";
+	
+	if (hour() < 10)
+	{
+		hours = "0" + String(hour());
+	}
+
+	if (minute() < 10)
+	{
+		minutes = "0" + String(minute());
+	}
+	
+	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Time:" + hours + ":" + String(minutes), BlueToothCommandsUtil::Info));
 
 	//String(F("Signal:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Signal:" + _signalStrength, BlueToothCommandsUtil::Info));

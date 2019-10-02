@@ -13,7 +13,7 @@ void setup(void) {
 //Il simbolo 'N' è considerato simbolo di errore.
 void loop(void) {
 
-	digitalWrite(A4, LOW);
+	digitalWrite(A4, HIGH);
 
 	if (softwareSerial->available() > 0)
 	{
