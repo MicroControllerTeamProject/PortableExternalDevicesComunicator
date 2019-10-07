@@ -812,9 +812,9 @@ void loadMainMenu()
 	
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("WhatzUp:" + _whatIsHappened, BlueToothCommandsUtil::Info));
 
-	String hours = "";
+	String hours = String(hour());
 
-	String minutes = "";
+	String minutes = String(minute());
 	
 	if (hour() < 10)
 	{
@@ -1511,7 +1511,9 @@ void listOfSmsCommands(String command)
 	if (command.startsWith("H"))
 	{
 		String hour = command.substring(1, 3);
+		//Serial.println(hour);
 		String minute = (command.substring(3, 5));
+		//Serial.println(minute);
 		setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
 		callSim900();
 	}
