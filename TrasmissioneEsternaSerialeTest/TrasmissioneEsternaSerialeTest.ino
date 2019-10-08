@@ -45,16 +45,16 @@ void loop(void) {
 	receivedMessage = getSerialMessage();
 	if (receivedMessage.startsWith("H"))
 	{
-			softwareSerial->print("t01N08.50");
-			softwareSerial->print("t02Y07.50");
-			softwareSerial->print("t03Y47.50");
-			softwareSerial->print("t04Y48.50");
-			softwareSerial->print("t05Y47.50");
-			softwareSerial->print("t06Y47.50");
-			softwareSerial->print("t07Y48.50");
-			softwareSerial->print("t08Y47.50");
-			softwareSerial->print("t09Y47.50");
-			softwareSerial->print("t10Y48.50");
-			softwareSerial->print("t11Y47.50*");
-		}
+		softwareSerial->print("t01N08.50");
+		softwareSerial->print("t02Y07.50");
+		softwareSerial->print("t03Y47.50");
+		softwareSerial->print("t04Y48.50");
+		softwareSerial->print("t05Y47.50");
+		softwareSerial->print("t06Y47.50");
+		softwareSerial->print("t07Y48.50");
+		softwareSerial->print("t08Y47.50");
+		softwareSerial->print("t09Y47.50");
+		softwareSerial->print("t10Y48.50");
+		softwareSerial->print("t11Y47.50*");
+	}
 }

@@ -228,11 +228,12 @@ char _bufExternalInterruptIsON[BUFSIZEEXTERNALINTERRUPTISON];
 //
 //static const uint8_t pirSensor2Pin = A5;
 
-static const uint8_t softwareSerialExternalDevicesTxPort = A2;
+static const uint8_t softwareSerialExternalDevicesTxPort = A5;
 
-static const uint8_t softwareSerialExternalDevicesPinAlarm = A4;
+static const uint8_t softwareSerialExternalDevicesRxPort = A4;
 
-static const uint8_t softwareSerialExternalDevicesRxPort = 5;
+static const uint8_t softwareSerialExternalDevicesPinAlarm = 5;
+
 
 static const uint8_t bluetoothKeyPin = 10;
 
@@ -381,7 +382,6 @@ void inizializePins()
 {
 	pinMode(_pin_powerLed, OUTPUT);
 	pinMode(softwareSerialExternalDevicesPinAlarm, INPUT_PULLUP);
-	pinMode(A2, OUTPUT);
 }
 
 void inizializeInterrupts()
