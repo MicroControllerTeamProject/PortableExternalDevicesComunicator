@@ -232,7 +232,7 @@ static const uint8_t softwareSerialExternalDevicesTxPort = A5;
 
 static const uint8_t softwareSerialExternalDevicesRxPort = A4;
 
-static const uint8_t softwareSerialExternalDevicesPinAlarm = 5;
+static const uint8_t softwareSerialExternalDevicesPinAlarm = A2;
 
 
 static const uint8_t bluetoothKeyPin = 10;
@@ -567,6 +567,7 @@ void readMemoryAtRunTime()
 
 char problematicDevice[4];
 
+char problematicDeviceName[5];
 char problematicDeviceValue[5];
 
 bool chechDevicesValue(char buffExternalDevices[100])
