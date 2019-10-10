@@ -638,9 +638,14 @@ void loop()
 	}*/
 	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW && !_isDisableCall)
 	{
+		unsigned long isWaitingForMessage = millis();
+		//Serial.println("Problema rilevato");
 		if ((millis() - isWaitingForSMS) > 60000)
 		{
-			getExternalDevices();	
+			while((millis() - isWaitingForMessage) < 5000)
+			{
+				getExternalDevices();
+			}
 			isWaitingForSMS = millis();
 		}
 		readIncomingSMS();
