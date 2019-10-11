@@ -622,7 +622,7 @@ void getExternalDevices()
 	if (isOnAlarm)
 	{
 		Serial.println("Fare una chiamata");
-		//callSim900();
+		callSim900();
 	}
 }
 
@@ -634,6 +634,7 @@ void loop()
 	}*/
 	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW && !_isDisableCall)
 	{
+		Serial.println("Alarm pin activated");
 		getExternalDevices();
 
 	}
