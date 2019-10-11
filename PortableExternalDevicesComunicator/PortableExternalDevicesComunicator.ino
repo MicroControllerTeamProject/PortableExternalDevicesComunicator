@@ -607,16 +607,13 @@ void getExternalDevices()
 	if (minute() < 10) { softwareSerial.print('0'); }
 	softwareSerial.print(minute());
 
-	//////Pulisco buffer se ci fosse roba
-	/*softwareSerial.readStringUntil('*');
-	softwareSerial.flush();*/
 	delay(2000);
 	
 	if (softwareSerial.available() > 0)
 	{
 		char *buffExtenalDevices = new char[100];
 		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
-		//Serial.println(buffExtenalDevices);
+		Serial.println(buffExtenalDevices);
 		isOnAlarm = chechDevicesValue(buffExtenalDevices);
 		delete[] buffExtenalDevices;
 	}
@@ -624,11 +621,10 @@ void getExternalDevices()
 
 	if (isOnAlarm)
 	{
-		callSim900();
+		Serial.println("Fare una chiamata");
+		//callSim900();
 	}
 }
-
-unsigned long isWaitingForSMS = 0;
 
 void loop()
 {
@@ -638,17 +634,8 @@ void loop()
 	}*/
 	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW && !_isDisableCall)
 	{
-		unsigned long isWaitingForMessage = millis();
-		//Serial.println("Problema rilevato");
-		if ((millis() - isWaitingForSMS) > 60000)
-		{
-			while((millis() - isWaitingForMessage) < 5000)
-			{
-				getExternalDevices();
-			}
-			isWaitingForSMS = millis();
-		}
-		readIncomingSMS();
+		getExternalDevices();
+
 	}
 
 	readIncomingSMS();
