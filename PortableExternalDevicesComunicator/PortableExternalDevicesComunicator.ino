@@ -117,7 +117,7 @@ bool _isDisableCall = false;
 
 char _prefix[4] = "+39";
 
-bool _isAlarmOn = false;
+//bool _isAlarmOn = false;
 
 //String _phoneNumber;
 
@@ -401,15 +401,43 @@ void callSim900()
 	if (_phoneNumbers == 1)
 	{
 		strcat(phoneNumber, _phoneNumber);
+		mySim900->DialVoiceCall(phoneNumber);
 	}
 
 	if (_phoneNumbers == 2)
 	{
 		strcat(phoneNumber, _phoneNumberAlternative);
+		mySim900->DialVoiceCall(phoneNumber);
 	}
 
-	mySim900->DialVoiceCall(phoneNumber);
-
+	if (_phoneNumbers == 3)
+	{
+		strcat(phoneNumber, _phoneNumber);
+		mySim900->DialVoiceCall(phoneNumber);
+		//delay(10000);
+		unsigned long time1 = millis();
+		String messageReceived = "";
+		while(millis() - time1 < 30000)
+		{
+			if (mySim900->IsAvailable())
+			{
+				messageReceived = mySim900->ReadIncomingChars2();
+				messageReceived.trim();
+				Serial.println(messageReceived);
+				if (messageReceived.equals("BUSY"))
+				{
+					//Serial.println("OCCUPATO");
+					mySim900->ATCommand("ATH");
+					memset(phoneNumber, 0, sizeof(phoneNumber));
+					strcpy(phoneNumber, _prefix);
+					strcat(phoneNumber, _phoneNumberAlternative);
+					mySim900->DialVoiceCall(phoneNumber);
+				}
+				
+			}
+		}
+		
+	}
 	delay(10000);
 
 	mySim900->ReadIncomingChars2();
@@ -655,34 +683,34 @@ void loop()
 	//readMemoryAtRunTime();
 }
 
-void isOnInterrupt()
-{
-	if (_isDisableCall) {
-		_isOnInterrupt = false;
-		return;
-	}
-
-	if (_isAlarmOn && _isExternalInterruptOn && _isOnInterrupt)
-	{
-		//Serial.println("lampeggio");
-		blinkLed();
-
-		detachInterrupt(0);
-		detachInterrupt(1);
-
-		//Do something
-
-		EIFR |= 1 << INTF1; //clear external interrupt 1
-		//EIFR |= 1 << INTF0; //clear external interrupt 0
-		//EIFR = 0x01;
-		sei();
-
-		/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
-		attachInterrupt(1, motionTiltExternalInterrupt, RISING);
-
-		_isOnInterrupt = false;
-	}
-}
+//void isOnInterrupt()
+//{
+//	if (_isDisableCall) {
+//		_isOnInterrupt = false;
+//		return;
+//	}
+//
+//	//if (_isAlarmOn && _isExternalInterruptOn && _isOnInterrupt)
+//	//{
+//	//	//Serial.println("lampeggio");
+//	//	blinkLed();
+//
+//	//	detachInterrupt(0);
+//	//	detachInterrupt(1);
+//
+//	//	//Do something
+//
+//	//	EIFR |= 1 << INTF1; //clear external interrupt 1
+//	//	//EIFR |= 1 << INTF0; //clear external interrupt 0
+//	//	//EIFR = 0x01;
+//	//	sei();
+//
+//	//	/*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
+//	//	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+//
+//	//	_isOnInterrupt = false;
+//	//}
+//}
 
 void turnOnBlueToothAndSetTurnOffTimer(bool isFromSMS)
 {
@@ -751,14 +779,14 @@ void loadMainMenu()
 {
 	char* alarmStatus = new char[15];
 
-	if (_isAlarmOn)
+	/*if (_isAlarmOn)
 	{
 		String(F("Alarm ON")).toCharArray(alarmStatus, 15);
 	}
 	else
 	{
 		String(F("Alarm OFF")).toCharArray(alarmStatus, 15);
-	}
+	}*/
 
 	char result[30];   // array to hold the result.
 
@@ -784,16 +812,16 @@ void loadMainMenu()
 	//String(F("Security")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Security"), BlueToothCommandsUtil::Menu, F("004")));
 
-	if (!_isAlarmOn)
-	{
-		//String(F("Alarm On")).toCharArray(commandString, 15);
-		btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm On"), BlueToothCommandsUtil::Command, F("002")));
-	}
-	else
-	{
-		//String(F("Alarm OFF")).toCharArray(commandString, 15);
-		btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm OFF"), BlueToothCommandsUtil::Command, F("003")));
-	}
+	//if (!_isAlarmOn)
+	//{
+	//	//String(F("Alarm On")).toCharArray(commandString, 15);
+	//	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm On"), BlueToothCommandsUtil::Command, F("002")));
+	//}
+	//else
+	//{
+	//	//String(F("Alarm OFF")).toCharArray(commandString, 15);
+	//	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm OFF"), BlueToothCommandsUtil::Command, F("003")));
+	//}
 
 	//String(F("Temp.:")).toCharArray(commandString, 15);
 	btSerial->println(BlueToothCommandsUtil::CommandConstructor("Temp.:" + String(internalTemperature), BlueToothCommandsUtil::Info));
@@ -915,30 +943,30 @@ void blueToothConfigurationSystem()
 
 #pragma region Commands
 
-		if (_bluetoothData.indexOf(F("C002")) > -1)
-		{
-			//do something
-			//digitalWrite(_pin_powerLed, HIGH);
-			_isAlarmOn = true;
-			/*_isOnExternalDeviceAlarm = false;*/
-			/*_timeAfterPowerOnForBTFinder = 0;*/
-			//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm ON"), BlueToothCommandsUtil::Title));
-		/*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm ON"), BlueToothCommandsUtil::Message));
-			btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));*/
-			loadMainMenu();
-		}
+		//if (_bluetoothData.indexOf(F("C002")) > -1)
+		//{
+		//	//do something
+		//	//digitalWrite(_pin_powerLed, HIGH);
+		//	_isAlarmOn = true;
+		//	/*_isOnExternalDeviceAlarm = false;*/
+		//	/*_timeAfterPowerOnForBTFinder = 0;*/
+		//	//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm ON"), BlueToothCommandsUtil::Title));
+		///*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm ON"), BlueToothCommandsUtil::Message));
+		//	btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));*/
+		//	loadMainMenu();
+		//}
 
-		if (_bluetoothData.indexOf(F("C003")) > -1)
-		{
-			//do something
-			_isAlarmOn = false;
+		//if (_bluetoothData.indexOf(F("C003")) > -1)
+		//{
+		//	//do something
+		//	_isAlarmOn = false;
 
-			//digitalWrite(_pin_powerLed, LOW);
-			//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm OFF"), BlueToothCommandsUtil::Title));
-		/*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm OFF"), BlueToothCommandsUtil::Message));
-			btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));*/
-			loadMainMenu();
-		}
+		//	//digitalWrite(_pin_powerLed, LOW);
+		//	//btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Portable Alarm OFF"), BlueToothCommandsUtil::Title));
+		///*	btSerial->println(BlueToothCommandsUtil::CommandConstructor(F("Alarm OFF"), BlueToothCommandsUtil::Message));
+		//	btSerial->println(BlueToothCommandsUtil::CommandConstructor(BlueToothCommandsUtil::EndTrasmission));*/
+		//	loadMainMenu();
+		//}
 #pragma endregion
 
 #pragma region Data
@@ -1612,14 +1640,14 @@ void listOfSmsCommands(String command)
 	//}
 }
 
-void activateFunctionAlarm()
-{
-	/*_timeToTurnOfBTAfterPowerOn = 0;
-	_timeAfterPowerOnForBTFinder = 0;*/
-	_isDisableCall = false;
-	_isAlarmOn = true;
-	callSim900();
-}
+//void activateFunctionAlarm()
+//{
+//	/*_timeToTurnOfBTAfterPowerOn = 0;
+//	_timeAfterPowerOnForBTFinder = 0;*/
+//	_isDisableCall = false;
+//	_isAlarmOn = true;
+//	callSim900();
+//}
 
 double getTemp(void)
 {
