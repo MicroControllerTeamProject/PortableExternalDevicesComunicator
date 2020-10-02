@@ -53,7 +53,7 @@ int temp;
 #include "ActivityManager.h"
 #include <TimeLib.h>
 
-char version[15] = "-X01 1.00-alfa";
+char version[15] = "X01 1.00-RTM";
 
 ActivityManager* _delayForTemperature = new ActivityManager(60);
 
@@ -112,6 +112,10 @@ const byte _addressStartDeviceName2 = 110;
 bool _isBlueLedDisable = true;
 
 bool _isDisableCall = false;
+
+bool _isDisableCallWithTime = false;
+
+unsigned long _disableCallDuration = 300000;
 
 //bool _isOnExternalDeviceAlarm = false;
 
@@ -390,9 +394,26 @@ void inizializeInterrupts()
 	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 }
 
+unsigned long _disableCallTime = 0;
+
 void callSim900()
 {
 	if (_isDisableCall) { return; }
+
+	if (_isDisableCallWithTime)
+	{
+		_disableCallTime = millis() + _disableCallDuration;
+	}
+
+	if (_isDisableCallWithTime && _disableCallTime >= millis())
+	{ 
+		return; 
+	}
+	else if(_disableCallDuration != 0)
+	{
+		_disableCallTime = 0;
+		_isDisableCallWithTime = false;
+	}
 
 	char phoneNumber[14];
 
@@ -1539,19 +1560,22 @@ void listOfSmsCommands(String command)
 		setTime(hour.toInt(), minute.toInt(), 1, 1, 1, 2019);
 		callSim900();
 	}
-
 	//Attiva chiamate
 	if (command == F("Ac"))
 	{
 		_isDisableCall = false;
 		callSim900();
 	}
-
 	//Disattiva chiamate
 	if (command == F("Dc"))
 	{
 		callSim900();
 		_isDisableCall = true;
+	}
+	if (command == F("Dt"))
+	{
+		callSim900();
+		_isDisableCallWithTime = true;
 	}
 	////Allarme ON
 	//if (command == F("Ao"))
@@ -1564,7 +1588,6 @@ void listOfSmsCommands(String command)
 	//	}
 	//	_isAlarmOn = true;
 	//}
-
 	//Accende bluetooth
 	if (command == F("Ab"))
 	{
