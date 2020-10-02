@@ -117,6 +117,8 @@ bool _isDisableCallWithTime = false;
 
 unsigned long _disableCallDuration = 300000;
 
+unsigned long _disableCallTime = 0;
+
 //bool _isOnExternalDeviceAlarm = false;
 
 char _prefix[4] = "+39";
@@ -394,7 +396,7 @@ void inizializeInterrupts()
 	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
 }
 
-unsigned long _disableCallTime = 0;
+
 
 void callSim900()
 {
@@ -409,7 +411,7 @@ void callSim900()
 	{ 
 		return; 
 	}
-	else if(_disableCallDuration != 0)
+	else if (_isDisableCallWithTime)
 	{
 		_disableCallTime = 0;
 		_isDisableCallWithTime = false;
