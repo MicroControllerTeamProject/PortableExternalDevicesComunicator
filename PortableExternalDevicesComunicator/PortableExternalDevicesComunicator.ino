@@ -413,17 +413,18 @@ void callSim900()
 {
 	if (_isDisableCall) { return; }
 
-	if (_isDisableCallWithTime)
+	if (_isDisableCallWithTime && _disableCallTime == 0)
 	{
 		_disableCallTime = millis() + _disableCallDuration;
 	}
 
-	if (_isDisableCallWithTime && _disableCallTime >= millis())
+	if (_isDisableCallWithTime && (_disableCallTime >= millis()))
 	{ 
 		return; 
 	}
 	else if (_isDisableCallWithTime)
 	{
+		Serial.println("Riabilito le chiamate");
 		_disableCallTime = 0;
 		_isDisableCallWithTime = false;
 	}
@@ -698,7 +699,7 @@ void loop()
 	{
 		//Serial.println("Alarm pin activated");
 		getExternalDevices();
-
+		readIncomingSMS();
 	}
 
 	readIncomingSMS();
@@ -1522,6 +1523,8 @@ void voltageActivity()
 
 void readIncomingSMS()
 {
+	mySim900->ReadIncomingChars2();
+
 	mySim900->ATCommand("AT+CMGL");//=\"REC UNREAD\"");
 	//mySim900->ATCommand("AT+CMGR=1");
 	delay(100);
@@ -1530,7 +1533,7 @@ void readIncomingSMS()
 	if (mySim900->IsAvailable() > 0)
 	{
 		String response = mySim900->ReadIncomingChars2();
-		delay(500);
+		//delay(500);
 		//Serial.print("####"); Serial.print(response); Serial.println("####");
 		response.trim();
 		//if (response.substring(0, 5) == F("+CMT:"))
@@ -1587,7 +1590,7 @@ void listOfSmsCommands(String command)
 	}
 	if (command == F("Dt"))
 	{
-		//Serial.println("Disable call with time"); 
+		Serial.println("Disable call with time"); 
 		_isDisableCallWithTime = true;
 	}
 	////Allarme ON
