@@ -34,6 +34,17 @@ extern int __data_end;
 //extern int __bss_end;
 extern int __heap_start;
 extern int __brkval;
+#include <OneWire.h>
+#include <Wire.h>
+#include <LiquidCrystal_SR3W.h>
+#include <LiquidCrystal_SR2W.h>
+#include <LiquidCrystal_SR.h>
+#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal.h>
+#include <LCD.h>
+#include <I2CIO.h>
+#include <FastIO.h>
+#include <SoftwareSerial.h>
 int temp;
 
 #if (defined(__AVR__))
@@ -446,7 +457,7 @@ void callSim900()
 			{
 				messageReceived = mySim900->ReadIncomingChars2();
 				messageReceived.trim();
-				Serial.println(messageReceived);
+				//Serial.println(messageReceived);
 				if (messageReceived.equals("BUSY"))
 				{
 					//Serial.println("OCCUPATO");
@@ -635,7 +646,7 @@ bool chechDevicesValue(char buffExternalDevices[100])
 			Serial.print(h[ii]);*/
 			if (buffExternalDevices[ii] == 'N')
 			{
-				Serial.print("ALARM DEVICE :"); Serial.println(problematicDevice);
+				//Serial.print("ALARM DEVICE :"); Serial.println(problematicDevice);
 				isOnAlarm = true;
 			}
 			problematicDevice[index] = buffExternalDevices[ii];
@@ -664,7 +675,7 @@ void getExternalDevices()
 	{
 		char *buffExtenalDevices = new char[100];
 		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
-		Serial.println(buffExtenalDevices);
+		//Serial.println(buffExtenalDevices);
 		isOnAlarm = chechDevicesValue(buffExtenalDevices);
 		delete[] buffExtenalDevices;
 	}
@@ -672,7 +683,7 @@ void getExternalDevices()
 
 	if (isOnAlarm)
 	{
-		Serial.println("Fare una chiamata");
+		//Serial.println("Fare una chiamata");
 		callSim900();
 	}
 }
@@ -685,7 +696,7 @@ void loop()
 	}*/
 	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW && !_isDisableCall)
 	{
-		Serial.println("Alarm pin activated");
+		//Serial.println("Alarm pin activated");
 		getExternalDevices();
 
 	}
@@ -1576,7 +1587,7 @@ void listOfSmsCommands(String command)
 	}
 	if (command == F("Dt"))
 	{
-		callSim900();
+		//Serial.println("Disable call with time"); 
 		_isDisableCallWithTime = true;
 	}
 	////Allarme ON
