@@ -15,11 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TrasmissioneEsternaSerialeTest.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="__vm\.TrasmissioneEsternaSerialeTest.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TrasmissioneEsternaSerialeTest.ino" />
   </ItemGroup>
 </Project>
