@@ -68,17 +68,15 @@ unsigned long minutesConverter(uint16_t minutes);
 
 char version[15] = "X01 1.00-RTM";
 
-ActivityManager* _delayForTemperature = new ActivityManager(60);
+ActivityManager* _delayForTemperature = new ActivityManager(2 * 60);
 
-ActivityManager* _delayForVoltage = new ActivityManager(60);
+ActivityManager* _delayForVoltage = new ActivityManager(5 * 60);
 
-ActivityManager* _delayForFreeRam = new ActivityManager(60);
+//ActivityManager* _delayForFreeRam = new ActivityManager(60);
 
-ActivityManager* _delayForSms = new ActivityManager(60);
+ActivityManager* _delayForSms = new ActivityManager(2 * 60);
 
 //ActivityManager* _delayForSignalStrength = new ActivityManager(30);
-
-
 
 String _oldPassword = "";
 
@@ -126,7 +124,7 @@ bool _isBlueLedDisable = true;
 
 bool _isDisableCall = false;
 
-bool _isDisableCallWithTime = true;
+bool _isDisableCallWithTime = false;
 
 unsigned long _disableCallDuration = minutesConverter(5);
 
@@ -237,9 +235,11 @@ static const byte _pin_rxSIM900 = 7;
 
 static const byte _pin_txSIM900 = 8;
 
+//---------------------------------------------       PINS USED   ----------------------------------------------------------
+
 bool _isBTEnable = false;
 
-SoftwareSerial softwareSerial = SoftwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
+SoftwareSerial softwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
 
 MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 9600);
 
@@ -247,13 +247,13 @@ unsigned long _btTimeConfiguration = 0;
 
 void setup()
 {
-	softwareSerial.begin(19200);
+	//Serial.begin(9600);
 
-	smsInit();
+	softwareSerial.begin(9600);
 
 	inizializePins();
 
-	inizializeInterrupts();
+	smsInit();
 
 	initilizeEEPromData();
 
@@ -274,14 +274,10 @@ void loop()
 {
 	if (_isBTEnable)
 	{
-
-#ifdef _DEBUG
-		Serial.print(F("btFunc"));
-#endif 
-
-		if (_btTimeConfiguration == 0){
+		if (_btTimeConfiguration == 0) {
 
 			_btTimeConfiguration = millis();
+
 			callSim900();
 		}
 
@@ -296,24 +292,16 @@ void loop()
 		return;
 	}
 
+	//if (_delayForFreeRam->IsDelayTimeFinished(true))
+	//{
+	//	Serial.print(F("mem :")); Serial.println(freeRam());
+	//}
 
-#ifdef _DEBUG
-	if (_delayForFreeRam->IsDelayTimeFinished(true))
-	{
-		Serial.print(F("mem :")); Serial.println(freeRam());
-	}
-#endif
-
-
-	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW ){
-
-#ifdef _DEBUG
-		Serial.println(F("alarmOn"));
-#endif
-
+	while (digitalRead(softwareSerialExternalDevicesPinAlarm) == LOW) {
+		//Serial.println(F("LOW"));
+		callSim900();
 		getExternalDevices();
-
-		readIncomingSMS();
+		//readIncomingSMS();
 	}
 
 	readIncomingSMS();
@@ -321,7 +309,6 @@ void loop()
 	internalTemperatureActivity();
 
 	voltageActivity();
-
 }
 
 void smsInit() {
@@ -421,11 +408,11 @@ void inizializePins()
 	pinMode(softwareSerialExternalDevicesPinAlarm, INPUT_PULLUP);
 }
 
-void inizializeInterrupts()
-{
-	///*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
-	attachInterrupt(1, motionTiltExternalInterrupt, RISING);
-}
+//void inizializeInterrupts()
+//{
+//	///*attachInterrupt(0, motionTiltInternalInterrupt, RISING);*/
+//	//attachInterrupt(1, motionTiltExternalInterrupt, RISING);
+//}
 
 void callSim900()
 {
@@ -447,9 +434,9 @@ void callSim900()
 	}
 	else if (_isDisableCallWithTime) {
 
-#ifdef _DEBUG
-		Serial.println(F("restore.call"));
-#endif
+
+		//Serial.println(F("restore.call"));
+
 
 		_disableCallTime = 0;
 
@@ -460,9 +447,7 @@ void callSim900()
 
 	strcpy(phoneNumber, _prefix);
 
-#ifdef _DEBUG
-	Serial.println(F("make.call"));
-#endif 
+	//Serial.println(F("make.call"));
 
 	if (_isDisableCall) { return; }
 
@@ -512,12 +497,12 @@ void callSim900()
 
 }
 
-void motionTiltExternalInterrupt() {
-	if (_isExternalInterruptOn /*&& !_isPIRSensorActivated*/) {
-		//_isOnMotionDetect = true;
-		_isOnInterrupt = true;
-	}
-}
+//void motionTiltExternalInterrupt() {
+//	if (_isExternalInterruptOn /*&& !_isPIRSensorActivated*/) {
+//		//_isOnMotionDetect = true;
+//		_isOnInterrupt = true;
+//	}
+//}
 
 char problematicDevice[4];
 
@@ -535,7 +520,7 @@ bool chechDevicesValue(char buffExternalDevices[100])
 			Serial.print(h[ii]);*/
 			if (buffExternalDevices[ii] == 'N')
 			{
-				//Serial.print("ALARM DEVICE :"); Serial.println(problematicDevice);
+				//Serial.print(F("ALARM DEVICE :")); Serial.println(problematicDevice);
 				isOnAlarm = true;
 			}
 			problematicDevice[index] = buffExternalDevices[ii];
@@ -550,6 +535,8 @@ void getExternalDevices()
 {
 	bool isOnAlarm = false;
 
+	delay(1500);
+
 	softwareSerial.print("H");
 
 	if (hour() < 10) { softwareSerial.print('0'); }
@@ -557,14 +544,13 @@ void getExternalDevices()
 	if (minute() < 10) { softwareSerial.print('0'); }
 	softwareSerial.print(minute());
 
-	//delay(2000);
-
 	if (softwareSerial.available() > 0)
 	{
-		char buffExtenalDevices[50]{};
-		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 50);
-		//Serial.println(buffExtenalDevices);
+		//Serial.println(F("got mess:"));
+		char* buffExtenalDevices = new char[100];
+		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
 		isOnAlarm = chechDevicesValue(buffExtenalDevices);
+		delete[] buffExtenalDevices;
 	}
 
 	if (isOnAlarm)
@@ -573,7 +559,6 @@ void getExternalDevices()
 		callSim900();
 	}
 }
-
 
 //void isOnInterrupt()
 //{
@@ -1321,16 +1306,16 @@ void readIncomingSMS()
 	delay(3000);
 
 	String smsResponse = "";
+
 	String response = "";
 
-#ifdef _DEBUG
-	Serial.println(F("sms func"));
-#endif // _DEBUG
+	//Serial.println(F("sms func"));
+
 	mySim900.ReadIncomingChars2();
 
 	delay(2000);
 
-	for (uint8_t index = 1; index < 6; index++)
+	for (uint8_t index = 1; index < 4; index++)
 	{
 		char number[2] = { index + 48 ,'\0' };
 
@@ -1345,11 +1330,7 @@ void readIncomingSMS()
 		if (mySim900.IsAvailable())
 		{
 			response = mySim900.ReadIncomingChars2();
-
-#ifdef _DEBUG
-			Serial.print(F("#")); Serial.print(response); Serial.println(F("#"));
-#endif // _DEBUG
-
+			//Serial.print(F("#")); Serial.print(response); Serial.println(F("#"));
 			response.trim();
 
 			if (response.indexOf("+CMGR:") != -1)
@@ -1360,9 +1341,9 @@ void readIncomingSMS()
 				smsResponse = response.substring(index + 3);
 				index = smsResponse.lastIndexOf('\r\n');
 				smsResponse = smsResponse.substring(0, index);
-#ifdef _DEBUG
-				Serial.print(F("smsResponse :")); Serial.println(smsResponse);
-#endif // _DEBUG
+
+				//Serial.print(F("smsResponse :")); Serial.println(smsResponse);
+
 				delay(1000);
 
 				char commandSmsDelete[10] = "AT+CMGD=";
@@ -1371,9 +1352,9 @@ void readIncomingSMS()
 
 				mySim900.ATCommand(commandSmsDelete);
 
-#ifdef _DEBUG
-				Serial.print(F("del.sms ")); Serial.println(number);
-#endif // _DEBUG
+
+				//Serial.print(F("del.sms ")); Serial.println(number);
+
 
 				delay(3000);
 
@@ -1383,9 +1364,9 @@ void readIncomingSMS()
 						response.substring(51, 61) != _phoneNumber &&
 						response.substring(36, 46) != _phoneNumberAlternative &&
 						response.substring(51, 61) != _phoneNumberAlternative) {
-#ifdef _DEBUG
-						Serial.println(F("Num.err"));
-#endif // _DEBUG
+
+						//Serial.println(F("Num.err"));
+
 					}
 					else {
 						listOfSmsCommands(smsResponse);
@@ -1403,47 +1384,10 @@ void readIncomingSMS()
 	}
 }
 
-
-//void r()
-//{
-//	for (uint8_t index = 1; index < 6; index++)
-//	{
-//		char number[2] = { index + 48 ,'\0' };
-//
-//		char command[10] = "AT+CMGR=";
-//
-//		strcat(command, number);
-//
-//		mySim900->ATCommand(command);
-//
-//		delay(3000);
-//
-//		if (mySim900->IsAvailable())
-//		{
-//			if (mySerial.readStringUntil(tag).length() > 0)
-//			{
-//				if (mySerial.available() > 0)
-//				{
-//					mySerial.readStringUntil(tag).toCharArray(sms, 20, 0);
-//
-//					char command[10] = "AT+CMGD=";
-//
-//					strcat(command, number);
-//
-//					mySerial.println(command);
-//
-//					returnValue = true;
-//				}
-//			}
-//
-//		}
-//	}
-//}//
-
 void listOfSmsCommands(String command)
 {
 	command.trim();
-	//Imposta ora di sistema
+
 	if (command.startsWith("H"))
 	{
 		String hour = command.substring(1, 3);
@@ -1457,28 +1401,26 @@ void listOfSmsCommands(String command)
 	if (command.startsWith("#"))
 	{
 		command.substring(1).toCharArray(_phoneNumber, 11);
-#ifdef _DEBUG
-		Serial.print(F("_phne.Num: ")); Serial.println(_phoneNumber);
-#endif // _DEBUG
+		//Serial.print(F("_phne.Num: ")); Serial.println(_phoneNumber);
 	}
 
-	//Attiva chiamate
 	if (command == F("Ac"))
 	{
 		_isDisableCall = false;
 		callSim900();
 	}
-	//Disattiva chiamate
+
 	if (command == F("Dc"))
 	{
 		callSim900();
 		_isDisableCall = true;
 	}
+
 	if (command == F("Dt"))
 	{
-#ifdef _DEBUG
-		Serial.println(F("Dis.call.time"));
-#endif // DEBUG
+
+		//Serial.println(F("Dis.call.time"));
+
 		_isDisableCallWithTime = true;
 	}
 	////Allarme ON
@@ -1503,22 +1445,23 @@ void listOfSmsCommands(String command)
 		_isBlueLedDisable = false;
 		callSim900();
 	}
-	//Check system
+
 	if (command == F("Ck"))
 	{
-#ifdef _DEBUG
-		Serial.println(F("test"));
-#endif // _DEBUG
+
+		//Serial.println(F("test"));
+
 		callSim900();
 	}
 
 	if (command == F("Be"))
 	{
-#ifdef _DEBUG
-		Serial.println(F("bten"));
-#endif // _DEBUG
+
+		//Serial.println(F("bten"));
+
 		_isBTEnable = true;
 	}
+
 	////Position enable.
 	//if (commandFindSms == F("Pe"))
 	//{
@@ -1617,7 +1560,6 @@ double getTemp(void)
 	// The returned temperature is in degrees Celsius.
 	return (t);
 }
-
 
 //computes the free memory (from JeeLabs)
 int freeRam() {
