@@ -1,11 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2000
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PortableExternalDevicesComunicator", "PortableExternalDevicesComunicator\PortableExternalDevicesComunicator.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrasmissioneEsternaSerialeTest", "TrasmissioneEsternaSerialeTest\TrasmissioneEsternaSerialeTest.vcxproj", "{5561A156-CA3D-41DB-9133-B8E585B2833F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ext_libraries", "ext_libraries", "{D65DA3F6-5335-406E-A7B2-4B94F7E90C0C}"
+	ProjectSection(SolutionItems) = preProject
+		..\libraries\MyBlueTooth\MyBlueTooth.cpp = ..\libraries\MyBlueTooth\MyBlueTooth.cpp
+		..\libraries\MyBlueTooth\MyBlueTooth.h = ..\libraries\MyBlueTooth\MyBlueTooth.h
+		..\libraries\LSG_Utils\MySim900.cpp = ..\libraries\LSG_Utils\MySim900.cpp
+		..\libraries\LSG_Utils\MySim900.h = ..\libraries\LSG_Utils\MySim900.h
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
