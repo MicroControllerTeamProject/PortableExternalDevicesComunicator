@@ -156,7 +156,7 @@ static const byte _pin_txSIM900 = 8;
 
 //---------------------------------------------       PINS USED END   ----------------------------------------------------------
 
-bool _isBTEnable = false;
+bool _isBTEnable = true;
 
 unsigned long _btTimeConfiguration = 0;
 
@@ -170,6 +170,8 @@ MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 96
 
 void setup()
 {
+  Serial.begin(9600);
+
 	softwareSerial.begin(9600);
 
 	inizializePins();
@@ -197,8 +199,9 @@ void loop()
 {
 	if (_isBTEnable)
 	{
+    
 		if (_btTimeConfiguration == 0) {
-
+    
 			_btTimeConfiguration = millis();
 
 			callSim900();
@@ -214,6 +217,7 @@ void loop()
 		}
 		return;
 	}
+
 
 	//if (_delayForFreeRam->IsDelayTimeFinished(true))
 	//{
@@ -261,28 +265,27 @@ void smsInit() {
 
 void initilizeEEPromData()
 {
-	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
+	LSG_EEpromRW eepromRW;
 
   #ifdef _HARDWARE_CODE  
   char hardware_code[4] = {};
-	eepromRW->eeprom_read_string(500, hardware_code,4);
+	eepromRW.eeprom_read_string(500, hardware_code,4);
 	Serial.print(F("\r\nhardware_code: "));Serial.println(hardware_code);
  #endif 
 
-	eepromRW->eeprom_read_string(_addressStartBufPhoneNumber, _phoneNumber, BUFSIZEPHONENUMBER);
+	eepromRW.eeprom_read_string(_addressStartBufPhoneNumber, _phoneNumber, BUFSIZEPHONENUMBER);
 
-	eepromRW->eeprom_read_string(_addressStartBufPhoneNumberAlternative, _phoneNumberAlternative, BUFSIZEPHONENUMBERALTERANATIVE);
+	eepromRW.eeprom_read_string(_addressStartBufPhoneNumberAlternative, _phoneNumberAlternative, BUFSIZEPHONENUMBERALTERANATIVE);
 
-	eepromRW->eeprom_read_string(_addressDBPhoneIsON, _bufDbPhoneON, BUFSIZEDBPHONEON);
+	eepromRW.eeprom_read_string(_addressDBPhoneIsON, _bufDbPhoneON, BUFSIZEDBPHONEON);
 	_phoneNumbers = atoi(&_bufDbPhoneON[0]);
 
-	eepromRW->eeprom_read_string(_addressStartBufTemperatureMax, _bufTemperatureMax, BUFSIZETEMPERATUREMAX);
+	eepromRW.eeprom_read_string(_addressStartBufTemperatureMax, _bufTemperatureMax, BUFSIZETEMPERATUREMAX);
 	_tempMax = atoi(_bufTemperatureMax);
 
-	eepromRW->eeprom_read_string(_addressOffSetTemperature, _bufOffSetTemperature, BUFSIZEOFFSETTEMPERATURE);
+	eepromRW.eeprom_read_string(_addressOffSetTemperature, _bufOffSetTemperature, BUFSIZEOFFSETTEMPERATURE);
 	_offSetTempValue = atoi(_bufOffSetTemperature);
 
-	delete(eepromRW);
 
 }
 
@@ -476,7 +479,7 @@ String calculateBatteryLevel(float batteryLevel)
 
 void loadMainMenu()
 {
-	char* alarmStatus = new char[15];
+	char alarmStatus[15]={};
 
 	/*if (_isAlarmOn)
 	{
@@ -580,7 +583,7 @@ void loadConfigurationMenu()
 
 void blueToothConfigurationSystem()
 {
-	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
+	LSG_EEpromRW eepromRW;
 	String _bluetoothData = "";
 	if (btSerial.available())
 	{
@@ -618,7 +621,7 @@ void blueToothConfigurationSystem()
 			if (isValidNumber(splitString))
 			{
 				splitString.toCharArray(_phoneNumber, BUFSIZEPHONENUMBER);
-				eepromRW->eeprom_write_string(1, _phoneNumber);
+				eepromRW.eeprom_write_string(1, _phoneNumber);
 			}
 			loadConfigurationMenu();
 		}
@@ -629,7 +632,7 @@ void blueToothConfigurationSystem()
 			if (isValidNumber(splitString))
 			{
 				splitString.toCharArray(_bufOffSetTemperature, BUFSIZEOFFSETTEMPERATURE);
-				eepromRW->eeprom_write_string(_addressOffSetTemperature, _bufOffSetTemperature);
+				eepromRW.eeprom_write_string(_addressOffSetTemperature, _bufOffSetTemperature);
 				_offSetTempValue = atoi(&_bufOffSetTemperature[0]);
 			}
 
@@ -642,7 +645,7 @@ void blueToothConfigurationSystem()
 			if (isValidNumber(splitString))
 			{
 				splitString.toCharArray(_bufDbPhoneON, BUFSIZEDBPHONEON);
-				eepromRW->eeprom_write_string(_addressDBPhoneIsON, _bufDbPhoneON);
+				eepromRW.eeprom_write_string(_addressDBPhoneIsON, _bufDbPhoneON);
 				_phoneNumbers = atoi(&_bufDbPhoneON[0]);
 			}
 			loadConfigurationMenu();
@@ -654,7 +657,7 @@ void blueToothConfigurationSystem()
 			if (isValidNumber(splitString))
 			{
 				splitString.toCharArray(_phoneNumberAlternative, BUFSIZEPHONENUMBERALTERANATIVE);
-				eepromRW->eeprom_write_string(_addressStartBufPhoneNumberAlternative, _phoneNumberAlternative);
+				eepromRW.eeprom_write_string(_addressStartBufPhoneNumberAlternative, _phoneNumberAlternative);
 			}
 			loadConfigurationMenu();
 		}
@@ -665,7 +668,7 @@ void blueToothConfigurationSystem()
 			if (isValidNumber(splitString))
 			{
 				splitString.toCharArray(_bufTemperatureMax, BUFSIZETEMPERATUREMAX);
-				eepromRW->eeprom_write_string(16, _bufTemperatureMax);
+				eepromRW.eeprom_write_string(16, _bufTemperatureMax);
 				_tempMax = atoi(_bufTemperatureMax);
 			}
 			loadConfigurationMenu();
@@ -773,7 +776,7 @@ void blueToothConfigurationSystem()
 
 		delay(100);
 	}
-	delete(eepromRW);
+	
 }
 
 boolean isValidNumber(String str)
