@@ -166,7 +166,7 @@ SoftwareSerial softwareSerial(softwareSerialExternalDevicesRxPort, softwareSeria
 
 MyBlueTooth btSerial(&Serial, bluetoothKeyPin, bluetoothTransistorPin, 38400, 9600);
 
-
+#define _HARDWARE_CODE 
 
 void setup()
 {
@@ -189,6 +189,8 @@ void setup()
 	_whatIsHappened = F("X");
 
 	blinkLed();
+
+
 }
 
 void loop()
@@ -260,6 +262,12 @@ void smsInit() {
 void initilizeEEPromData()
 {
 	LSG_EEpromRW* eepromRW = new LSG_EEpromRW();
+
+  #ifdef _HARDWARE_CODE  
+  char hardware_code[4] = {};
+	eepromRW->eeprom_read_string(500, hardware_code,4);
+	Serial.print(F("\r\nhardware_code: "));Serial.println(hardware_code);
+ #endif 
 
 	eepromRW->eeprom_read_string(_addressStartBufPhoneNumber, _phoneNumber, BUFSIZEPHONENUMBER);
 
