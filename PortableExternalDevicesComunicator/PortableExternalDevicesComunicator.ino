@@ -68,13 +68,13 @@ unsigned long minutesConverter(uint16_t minutes);
 
 char version[15] = "X01 1.00-RTM";
 
-ActivityManager* _delayForTemperature = new ActivityManager(2 * 60);
+ActivityManager _delayForTemperature(2 * 60);
 
-ActivityManager* _delayForVoltage = new ActivityManager(5 * 60);
+ActivityManager _delayForVoltage(5 * 60);
 
-//ActivityManager* _delayForFreeRam = new ActivityManager(60);
+//ActivityManager _delayForFreeRam(60);
 
-ActivityManager* _delayForSms = new ActivityManager(2 * 60);
+ActivityManager _delayForSms(2 * 60);
 
 //ActivityManager* _delayForSignalStrength = new ActivityManager(30);
 
@@ -419,10 +419,9 @@ void getExternalDevices()
 	if (softwareSerial.available() > 0)
 	{
 		//Serial.println(F("got mess:"));
-		char* buffExtenalDevices = new char[100];
+		char buffExtenalDevices[100]={};
 		softwareSerial.readStringUntil('*').toCharArray(buffExtenalDevices, 100);
 		isOnAlarm = chechDevicesValue(buffExtenalDevices);
-		delete[] buffExtenalDevices;
 	}
 
 	if (isOnAlarm)
@@ -790,7 +789,7 @@ boolean isValidNumber(String str)
 
 void internalTemperatureActivity()
 {
-	if (_delayForTemperature->IsDelayTimeFinished(true))
+	if (_delayForTemperature.IsDelayTimeFinished(true))
 	{
 		/*if (_isTemperatureCheckOn == 0) return;*/
 
@@ -809,7 +808,7 @@ void internalTemperatureActivity()
 
 void voltageActivity()
 {
-	if (_delayForVoltage->IsDelayTimeFinished(true))
+	if (_delayForVoltage.IsDelayTimeFinished(true))
 	{
 		_voltageValue = (5.10 / 1023.00) * analogRead(A1);
 		_voltageMinValue = 3.25;
@@ -825,7 +824,7 @@ void voltageActivity()
 
 void readIncomingSMS()
 {
-	if (!_delayForSms->IsDelayTimeFinished(true)) return;
+	if (!_delayForSms.IsDelayTimeFinished(true)) return;
 
 	MySim900 mySim900(_pin_rxSIM900, _pin_txSIM900, false);
 
