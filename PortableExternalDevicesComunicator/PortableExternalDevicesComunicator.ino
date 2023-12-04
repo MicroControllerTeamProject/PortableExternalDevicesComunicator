@@ -160,6 +160,8 @@ bool _isBTEnable = true;
 
 unsigned long _btTimeConfiguration = 0;
 
+uint8_t minute_wait_bluetooth = 5;
+
 char problematicDevice[4];
 
 SoftwareSerial softwareSerial(softwareSerialExternalDevicesRxPort, softwareSerialExternalDevicesTxPort);
@@ -209,7 +211,7 @@ void loop()
 
 		blueToothConfigurationSystem();
 
-		if ((millis() - _btTimeConfiguration) > minutesConverter(5))
+		if ((millis() - _btTimeConfiguration) > minutesConverter(minute_wait_bluetooth))
 		{
 			_btTimeConfiguration = 0;
 			_isBTEnable = false;
